@@ -44,6 +44,7 @@ def generate_conceptNet_json(file_path):
     (lst, word_list) = segmentation(lst)
     for word in word_list:
         conceptNet_dict[word] = get_concept_triplet_list(word)
+    conceptNet_dict[''] = []
     with open('data/conceptDict.json', 'w', encoding='utf-8') as f:
         f.write(json.dumps(conceptNet_dict, ensure_ascii=False))
 
@@ -79,8 +80,8 @@ def segmentation(lst):
                     word.append(pair.word)
                     word_list.append(pair.word)
         if len(word) == 0:
-            word.append(event[2])
-            word_list.append(event[2])
+            word.append(event[3])
+            word_list.append(event[3])
         word = list(set(word))
         event.append(word)
     df = pd.DataFrame(lst, columns=['sample_id', 'event_id', 'event_Adv', 'event_P', 'event_Cpl', 'segmentation words'])
@@ -91,10 +92,22 @@ def segmentation(lst):
     return lst, word_list
 
 
+# 生成所有事件的Adv,P,Cpl的关键词的ConceptNet
+def generate_all_event_Adv_P_Cpl_ConceptNet_csv(file_path, dict_path):
+    all_event_Adv_P_Cpl = pd.read_csv(file_path)
+    with open(dict_path, encoding='utf-8') as f:
+        conceptNet_dict = json.load(f)
+    for i in range(all_event_Adv_P_Cpl.shape[0]):
+        str_words = all_event_Adv_P_Cpl.loc[i, 'segmentation words']
+        lst_words = ast.literal_eval(str_words)
+        conceptNet_list = []
+        for word in lst_words:
+            word_conceptNet = conceptNet_dict[word]
+            conceptNet_list.append(word_conceptNet)
+        all_event_Adv_P_Cpl.loc[i, 'conceptNet'] = json.dumps(conceptNet_list, ensure_ascii=False)
+    all_event_Adv_P_Cpl.to_csv(file_path, index=False)
+
+
 if __name__ == '__main__':
-    # lst = get_P('data/ImplicitECD.Tuple.forTag.xml')
-    # lst = get_P('data/test.xml')
-    # segmentation_P(lst)
-    # generate_ConceptNet_csv('data/conceptList.csv')
-    # generate_all_event_P_ConceptNet_csv('data/all_event_P.csv', 'data/conceptList.csv')
     generate_conceptNet_json('data/ImplicitECD.Tuple.forTag.xml')
+    generate_all_event_Adv_P_Cpl_ConceptNet_csv('data/all_event_Adv_P_Cpl.csv', 'data/conceptDict.json')
