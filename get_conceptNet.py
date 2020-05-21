@@ -1,11 +1,13 @@
 import xml.etree.ElementTree as ET
 import ast
+import fm
 import pandas as pd
 from langconv import *
 import jieba.posseg as posseg
 import requests
 from requests.adapters import HTTPAdapter
 import re
+import time
 import json
 
 re_concept = re.compile(
@@ -18,6 +20,13 @@ request.mount('https://', HTTPAdapter(max_retries=3))
 # 简体转换为繁体
 def chs_to_cht(line):
     line = Converter('zh-hant').convert(line)
+    line.encode('utf-8')
+    return line
+
+
+# 繁体转换为简体
+def cht_to_chs(line):
+    line = Converter('zh-hans').convert(line)
     line.encode('utf-8')
     return line
 
@@ -46,6 +55,49 @@ def generate_conceptNet_json(file_path):
         conceptNet_dict[word] = get_concept_triplet_list(word)
     conceptNet_dict[''] = []
     with open('data/conceptDict.json', 'w', encoding='utf-8') as f:
+        f.write(json.dumps(conceptNet_dict, ensure_ascii=False))
+
+
+# 抽取出ConceptNetDict中的空value，形成NullConceptDict
+def generate_null_conceptNet_json(file_path_origin):
+    null_conceptNet_dict = {}
+    with open(file_path_origin, encoding='utf-8') as f:
+        conceptNet_dict = json.load(f)
+    for k, v in conceptNet_dict.items():
+        if not v:
+            null_conceptNet_dict[k] = v
+    with open('data/nullConceptDict.json', 'w', encoding='utf-8') as f:
+        f.write(json.dumps(null_conceptNet_dict, ensure_ascii=False))
+
+
+import synonyms
+
+
+# 使用近义词表扩充conceptDict.json
+def expand_conceptNet_json():
+    with open('data/expand_conceptDict.json', encoding='utf-8') as f:
+        conceptNet_dict = json.load(f)
+    with open('data/nullConceptDict.json', encoding='utf-8') as f:
+        nullConcept_dict = json.load(f)
+    nullConcept_dict_keys = list(nullConcept_dict.keys())
+    sub_dict = dict([(key, conceptNet_dict[key]) for key in nullConcept_dict_keys[2006:]])
+
+    for key, value in sub_dict.items():
+        if not value:
+            word = cht_to_chs(key)
+            synonym_words = synonyms.nearby(word)[0]
+            for synonym_word in synonym_words:
+                try:
+                    time.sleep(500)
+                    tmp = get_concept_triplet_list(chs_to_cht(synonym_word))
+                    if tmp:
+                        conceptNet_dict[key] = tmp
+                        break
+                except Exception:
+                    print(key)
+                    with open('data/expand_conceptDict.json', 'w', encoding='utf-8') as f:
+                        f.write(json.dumps(conceptNet_dict, ensure_ascii=False))
+    with open('data/expand_conceptDict.json', 'w', encoding='utf-8') as f:
         f.write(json.dumps(conceptNet_dict, ensure_ascii=False))
 
 
@@ -109,5 +161,7 @@ def generate_all_event_Adv_P_Cpl_ConceptNet_csv(file_path, dict_path):
 
 
 if __name__ == '__main__':
-    generate_conceptNet_json('data/ImplicitECD.Tuple.forTag.xml')
-    generate_all_event_Adv_P_Cpl_ConceptNet_csv('data/all_event_Adv_P_Cpl.csv', 'data/conceptDict.json')
+    # generate_conceptNet_json('data/ImplicitECD.Tuple.forTag.xml')
+    # generate_all_event_Adv_P_Cpl_ConceptNet_csv('data/all_event_Adv_P_Cpl.csv', 'data/conceptDict.json')
+    # generate_null_conceptNet_json('data/conceptDict.json')
+    expand_conceptNet_json()
