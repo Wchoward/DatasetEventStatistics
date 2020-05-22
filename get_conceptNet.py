@@ -88,7 +88,7 @@ def expand_conceptNet_json():
             synonym_words = synonyms.nearby(word)[0]
             for synonym_word in synonym_words:
                 try:
-                    time.sleep(500)
+                    # time.sleep(1)
                     tmp = get_concept_triplet_list(chs_to_cht(synonym_word))
                     if tmp:
                         conceptNet_dict[key] = tmp
@@ -163,5 +163,5 @@ def generate_all_event_Adv_P_Cpl_ConceptNet_csv(file_path, dict_path):
 if __name__ == '__main__':
     # generate_conceptNet_json('data/ImplicitECD.Tuple.forTag.xml')
     # generate_all_event_Adv_P_Cpl_ConceptNet_csv('data/all_event_Adv_P_Cpl.csv', 'data/conceptDict.json')
-    # generate_null_conceptNet_json('data/conceptDict.json')
-    expand_conceptNet_json()
+    generate_null_conceptNet_json('data/expand_conceptDict.json')
+    # expand_conceptNet_json()
