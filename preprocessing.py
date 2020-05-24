@@ -8,10 +8,9 @@ import re
 import time
 import json
 
+from bert_serving.client import BertClient
 
-# from bert_serving.client import BertClient
-#
-# bc = BertClient()
+bc = BertClient()
 
 
 # 简体转换为繁体
@@ -68,7 +67,7 @@ def generate_emotion_cause_npz(file_path, lst):
     return res
 
 
-def get_embedding(lst):
+def get_bert_embedding(lst):
     L = [len(x) for x in lst]
     maxLen = max(L)
     tmplst = []
