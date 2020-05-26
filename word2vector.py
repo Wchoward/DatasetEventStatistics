@@ -11,6 +11,7 @@ import fm
 from langconv import *
 import logging
 from gensim.models import Word2Vec
+from gensim.models import KeyedVectors
 from gensim.models.word2vec import LineSentence
 
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
@@ -20,7 +21,6 @@ wikiDocEnd = re.compile(r'^</doc>$')
 
 
 # model = Word2Vec.load('model/zh_wiki.model')
-
 
 
 def segment(ori_file, seg_file, wiki=True):
@@ -85,7 +85,7 @@ def get_all_origin_seg_text(csv_dir_path):
     fm.save_file('data/seg_corpus/all_origin_seg.txt', all_origin_seg_lst)
 
 
-def merge_wiki_texts(dir_path, result_path):
+def merge_dir_texts(dir_path, result_path):
     """
     合并文件夹中的内容到指定的txt文件内
     :param dir_path: 需要合并的文件夹
@@ -107,6 +107,47 @@ def merge_wiki_texts(dir_path, result_path):
         file.write('\n')
     # 关闭文件
     file.close()
+
+
+def load_word2vec_model_text_to_dict(file_path, ):
+    """
+    将word2vector模型生成的txt文件转化为dict
+    :param file_path:
+    :return:
+    """
+    dict_model = {}
+    with open(file_path, encoding='utf-8') as f_origin:
+        next(f_origin)
+        for line in f_origin:
+            tmp = line.strip(' \n').split(' ', 1)
+            k = tmp[0]
+            v = tmp[1]
+            dict_model[k] = v
+    return dict_model
+
+
+def merge_word2vec_model_texts(origin_w2v_path, concept_w2v_path, merge_w2v_path):
+    """
+    合并两个text的word2vector模型为一个
+    :param origin_w2v_path:
+    :param concept_w2v_path:
+    :param merge_w2v_path:
+    :return:
+    """
+    # load origin model text
+    dict_origin = load_word2vec_model_text_to_dict(origin_w2v_path)
+    # load conceptNet model text
+    dict_concept = load_word2vec_model_text_to_dict(concept_w2v_path)
+    # merge dict
+    dict_merge = dict(dict_origin, **dict_concept)
+    print('length:', len(dict_merge))
+    words = list(dict_merge.keys())
+    vectors = list(dict_merge.values())
+    lst = []
+    lst = [str(len(dict_merge)) + ' 300']
+    for i in range(len(dict_merge)):
+        lst.append(words[i] + ' ' + vectors[i])
+    fm.save_file(merge_w2v_path, lst)
 
 
 def get_sent_embedding(lst, max_len):
@@ -150,7 +191,7 @@ def generate_embedding_npy(file_path, dir_path):
     column1 = df.iloc[:, 1].values.tolist()
     embedding1 = get_sent_embedding(column1, 44)
     np.save(dir_path + '/cause_event.npy', embedding1)
-    embedding2 = df.iloc[:, 0].values
+    embedding2 = df.iloc[:, 2].values
     np.save(dir_path + '/if_cause.npy', embedding2)
 
 
@@ -175,11 +216,15 @@ if __name__ == '__main__':
     # 将我们语料中的原始文本分词后合并入一个文件 用于后续训练word2vec
     # get_all_origin_seg_text('data/emotion_category')
     # corpus_segment('data/zh_wiki', 'data/seg_wiki')
-    # merge_wiki_texts('data/seg_wiki', 'data/seg_corpus/merge_seg_wiki.txt')
-    # merge_wiki_texts('data/seg_corpus', 'data/merge_seg_all_corpus.txt')
+    # merge_dir_texts('data/seg_wiki', 'data/seg_corpus/merge_seg_wiki.txt')
+    # merge_dir_texts('data/seg_corpus', 'data/merge_seg_all_corpus.txt')
     # 训练word2vec
     # model = gensim.models.Word2Vec(LineSentence('data/merge_seg_all_corpus.txt'), min_count=1, size=300, workers=4, sg=0)
     # 保存模型
-    # model.save('model/zh_wiki.model')
-    model = Word2Vec.load('model/zh_wiki.model')
-    generate_file_list_embedding('data/emotion_category', 'data/origin_w2v_emotion_category')
+    # model.save('model/origin_w2v_model/zh_wiki.model')
+    # merge_word2vec_model_texts('model/origin_word2vec_embedding.txt', 'model/zhs_conceptnet_embedding.txt',
+    #                            'model/merge_w2v_embedding.txt')
+    # 调用模型
+    # model = Word2Vec.load('model/origin_w2v_model/zh_wiki.model')
+    model = KeyedVectors.load_word2vec_format("model/merge_w2v_embedding.txt", binary=False)
+    generate_file_list_embedding('data/emotion_category', 'data/merge_w2v_emotion_category')
