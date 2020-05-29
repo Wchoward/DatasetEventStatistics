@@ -24,4 +24,4 @@ def get_emotion_intensity(NRC, word, lam):
 
 
 if __name__ == "__main__":
-# generate_NRC_VAD_dict('data/NRC_VAD/Chinese (Simplified)-zh-CN-NRC-VAD-Lexicon.txt','data/NRC_VAD/NRC.json')
+    generate_NRC_VAD_dict('data/NRC_VAD/Chinese (Simplified)-zh-CN-NRC-VAD-Lexicon.txt', 'data/NRC_VAD/NRC.json')
