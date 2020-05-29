@@ -11,6 +11,12 @@ def load_file(filepath, ):
         return a
 
 
+def load_dict_json(filepath, ):
+    with open(filepath, encoding='utf-8') as f:
+        a = json.load(f)
+    return a
+
+
 def save_file(filepath, lst):
     with open(filepath, 'w', encoding='utf-8') as f:
         for i in range(len(lst)):
