@@ -143,7 +143,6 @@ def merge_word2vec_model_texts(origin_w2v_path, concept_w2v_path, merge_w2v_path
     print('length:', len(dict_merge))
     words = list(dict_merge.keys())
     vectors = list(dict_merge.values())
-    lst = []
     lst = [str(len(dict_merge)) + ' 300']
     for i in range(len(dict_merge)):
         lst.append(words[i] + ' ' + vectors[i])
