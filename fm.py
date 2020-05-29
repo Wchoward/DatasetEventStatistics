@@ -1,6 +1,7 @@
 # -*- coding:utf-8 -*-
 import xml.etree.ElementTree as ET
 import os
+import json
 
 
 def load_file(filepath, ):
@@ -23,6 +24,11 @@ def save_file(filepath, lst):
             f.write(lst[i])
             if i != len(lst) - 1:
                 f.write('\n')
+
+
+def save_dict_json(filepath, dic):
+    with open(filepath, 'w', encoding='utf-8') as f:
+        f.write(json.dumps(dic, ensure_ascii=False))
 
 
 def load_xml(filepath):
