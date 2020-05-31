@@ -204,15 +204,19 @@ def get_sent_embedding_integrated_conceptnet(sent_lst, max_len, concept_dict, la
                 weight_lst = []
                 concept_embedding_lst = []
                 for c_k in concept_dict[word]:
-                    weight_k = get_emotion_intensity(NRC, word, lam)
-                    if weight_k is not None:
-                        if c_k in model_conceptnet:
+                    e_k = get_emotion_intensity(NRC, word, lam)
+                    if e_k is not None:
+                        if c_k['Concept'] in model_conceptnet:
+                            weight_k = e_k * c_k['Weight']
                             weight_lst.append(weight_k)
-                            concept_embedding_lst.append(model_conceptnet[c_k])
+                            concept_embedding_lst.append(model_conceptnet[c_k['Concept']])
                 weight_lst = np.array(weight_lst)
-                concept_embedding_lst = np.array(concept_embedding_lst)
-                alpha_lst = np.exp(weight_lst) / sum(np.exp(weight_lst))
-                integrated_embedding = np.dot(alpha_lst, concept_embedding_lst) + model[word]
+                if not concept_embedding_lst:
+                    integrated_embedding = model[word]
+                else:
+                    concept_embedding_lst = np.array(concept_embedding_lst)
+                    alpha_lst = np.exp(weight_lst) / sum(np.exp(weight_lst))
+                    integrated_embedding = (np.dot(alpha_lst, concept_embedding_lst) + model[word]) / 2
                 word_embedding_lst.append(integrated_embedding[np.newaxis, :])
         sent_embedding = np.concatenate(word_embedding_lst)
         sent_embedding_lst.append(
@@ -221,9 +225,10 @@ def get_sent_embedding_integrated_conceptnet(sent_lst, max_len, concept_dict, la
     return embedding
 
 
-def generate_embedding_npy(file_path, dir_path):
+def generate_embedding_npy(file_path, dir_path, lam):
     """
     将csv文件的三列转化为embedding矩阵，分别保存为npy
+    :param lam: lambda
     :param file_path: csv文件目录
     :param dir_path: 保存的路径
     :return:
@@ -232,19 +237,20 @@ def generate_embedding_npy(file_path, dir_path):
     concept_dict = fm.load_dict_json('data/conceptNet/simplified_concept_dict.json')
     column0 = df.iloc[:, 0].values.tolist()
     # embedding0 = get_sent_embedding(column0, 169)
-    embedding0 = get_sent_embedding_integrated_conceptnet(column0, 169, concept_dict, 0.5)
+    embedding0 = get_sent_embedding_integrated_conceptnet(column0, 169, concept_dict, lam)
     np.save(dir_path + '/origin_text.npy', embedding0)
     column1 = df.iloc[:, 1].values.tolist()
     # embedding1 = get_sent_embedding(column1, 44)
-    embedding1 = get_sent_embedding_integrated_conceptnet(column1, 44, concept_dict, 0.5)
+    embedding1 = get_sent_embedding_integrated_conceptnet(column1, 44, concept_dict, lam)
     np.save(dir_path + '/cause_event.npy', embedding1)
     embedding2 = df.iloc[:, 2].values
     np.save(dir_path + '/if_cause.npy', embedding2)
 
 
-def generate_file_list_embedding(csv_dir_path, embedding_dir_path):
+def generate_file_list_embedding(csv_dir_path, embedding_dir_path, lam):
     """
     将整个文件夹内的所有的csv进行embedding转化，保存到指定的目录下
+    :param lam: lambda
     :param csv_dir_path: 输入的csv的目录路径
     :param embedding_dir_path: 输出的文件保存的目录路径
     :return:
@@ -256,7 +262,7 @@ def generate_file_list_embedding(csv_dir_path, embedding_dir_path):
         category = re_emotion_category.match(file_path).group(1)
         os.makedirs(embedding_dir_path + '/' + category, exist_ok=True)
         print(category + ':')
-        generate_embedding_npy(file_path, embedding_dir_path + '/' + category)
+        generate_embedding_npy(file_path, embedding_dir_path + '/' + category, lam)
 
 
 if __name__ == '__main__':
@@ -276,4 +282,18 @@ if __name__ == '__main__':
     model = Word2Vec.load('model/origin_w2v_model/zh_wiki.model')
     model_conceptnet = KeyedVectors.load_word2vec_format("model/conceptnet_embedding/filtered_conceptnet_embedding.txt",
                                                          binary=False)
-    generate_file_list_embedding('data/emotion_category', 'data/lambda_w2v_emotion_category')
+    generate_file_list_embedding('data/emotion_category', 'data/w2v_emotion_category_lambda_0', 0)
+    os.system('tar zcvf data/w2v_emotion_category_lambda_0.tar.gz data/w2v_emotion_category_lambda_0')
+    os.system('rm -rf data/w2v_emotion_category_lambda_0')
+    generate_file_list_embedding('data/emotion_category', 'data/w2v_emotion_category_lambda_0.25', 0.25)
+    os.system('tar zcvf data/w2v_emotion_category_lambda_0.25.tar.gz data/w2v_emotion_category_lambda_0.25')
+    os.system('rm -rf data/w2v_emotion_category_lambda_0.25')
+    generate_file_list_embedding('data/emotion_category', 'data/w2v_emotion_category_lambda_0.5', 0.5)
+    os.system('tar zcvf data/w2v_emotion_category_lambda_0.5.tar.gz data/w2v_emotion_category_lambda_0.5')
+    os.system('rm -rf data/w2v_emotion_category_lambda_0.5')
+    generate_file_list_embedding('data/emotion_category', 'data/w2v_emotion_category_lambda_0.75', 0.75)
+    os.system('tar zcvf data/w2v_emotion_category_lambda_0.75.tar.gz data/w2v_emotion_category_lambda_0.75')
+    os.system('rm -rf data/w2v_emotion_category_lambda_0.75')
+    generate_file_list_embedding('data/emotion_category', 'data/w2v_emotion_category_lambda_1', 1)
+    os.system('tar zcvf data/w2v_emotion_category_lambda_1.tar.gz data/w2v_emotion_category_lambda_1')
+    os.system('rm -rf data/w2v_emotion_category_lambda_1')
