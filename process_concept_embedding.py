@@ -1,4 +1,6 @@
 import fm
+import process_NRC_VAD
+from word2vector import load_word2vec_model_text_to_dict, save_dict_to_word2vec_model_text
 
 
 def get_concept_words(concept_dict_path):
@@ -57,9 +59,17 @@ def filter_conceptnet_embedding(dict_path, file_path_in, file_path_out):
     fm.save_file(file_path_out, embedding_lst)
 
 
+# def weighted_conceptnet_embedding(concept_dict, embedding_dict, lam):
+#     weighted_model_dict = {}
+#     concept_words = list(concept_dict.keys())
+#     for word in concept_words:
+
+
 if __name__ == "__main__":
-    # lst, dic = get_concept_words('data/conceptDict.json')
+    lst, concept_dict = get_concept_words('data/conceptNet/conceptDict.json')
+    embedding_dict = load_word2vec_model_text_to_dict('model/conceptnet_embedding/filtered_conceptnet_embedding.txt')
     # fm.save_file('data/conceptWords.txt', lst)
-    # fm.save_dict_json('data/simplified_concept_dict.json', dic)
-    filter_conceptnet_embedding('data/conceptDict.json', 'data/w2v_embedding/zhs_conceptnet_embedding.txt',
-                                'data/w2v_embedding/filtered_conceptnet_embedding.txt')
+    # fm.save_dict_json('data/simplified_concept_dict.json', concept_dict)
+    # filter_conceptnet_embedding('data/conceptNet/conceptDict.json',
+    #                             'model/conceptnet_embedding/zhs_conceptnet_embedding.txt',
+    #                             'model/conceptnet_embedding/filtered_conceptnet_embedding.txt')
