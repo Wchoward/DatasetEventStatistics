@@ -54,7 +54,7 @@ def generate_conceptNet_json(file_path):
     for word in word_list:
         conceptNet_dict[word] = get_concept_triplet_list(word)
     conceptNet_dict[''] = []
-    with open('data/conceptDict.json', 'w', encoding='utf-8') as f:
+    with open('data/conceptNet/conceptDict.json', 'w', encoding='utf-8') as f:
         f.write(json.dumps(conceptNet_dict, ensure_ascii=False))
 
 
@@ -66,7 +66,7 @@ def generate_null_conceptNet_json(file_path_origin):
     for k, v in conceptNet_dict.items():
         if not v:
             null_conceptNet_dict[k] = v
-    with open('data/nullConceptDict.json', 'w', encoding='utf-8') as f:
+    with open('data/conceptNet/nullConceptDict.json', 'w', encoding='utf-8') as f:
         f.write(json.dumps(null_conceptNet_dict, ensure_ascii=False))
 
 
@@ -75,9 +75,9 @@ import synonyms
 
 # 使用近义词表扩充conceptDict.json
 def expand_conceptNet_json():
-    with open('data/expand_conceptDict.json', encoding='utf-8') as f:
+    with open('data/conceptNet/expand_conceptDict.json', encoding='utf-8') as f:
         conceptNet_dict = json.load(f)
-    with open('data/nullConceptDict.json', encoding='utf-8') as f:
+    with open('data/conceptNet/nullConceptDict.json', encoding='utf-8') as f:
         nullConcept_dict = json.load(f)
     nullConcept_dict_keys = list(nullConcept_dict.keys())
     sub_dict = dict([(key, conceptNet_dict[key]) for key in nullConcept_dict_keys[2006:]])
@@ -95,9 +95,9 @@ def expand_conceptNet_json():
                         break
                 except Exception:
                     print(key)
-                    with open('data/expand_conceptDict.json', 'w', encoding='utf-8') as f:
+                    with open('data/conceptNet/expand_conceptDict.json', 'w', encoding='utf-8') as f:
                         f.write(json.dumps(conceptNet_dict, ensure_ascii=False))
-    with open('data/expand_conceptDict.json', 'w', encoding='utf-8') as f:
+    with open('data/conceptNet/expand_conceptDict.json', 'w', encoding='utf-8') as f:
         f.write(json.dumps(conceptNet_dict, ensure_ascii=False))
 
 
@@ -163,5 +163,5 @@ def generate_all_event_Adv_P_Cpl_ConceptNet_csv(file_path, dict_path):
 if __name__ == '__main__':
     # generate_conceptNet_json('data/ImplicitECD.Tuple.forTag.xml')
     # generate_all_event_Adv_P_Cpl_ConceptNet_csv('data/all_event_Adv_P_Cpl.csv', 'data/conceptDict.json')
-    generate_null_conceptNet_json('data/expand_conceptDict.json')
+    generate_null_conceptNet_json('data/conceptNet/expand_conceptDict.json')
     # expand_conceptNet_json()
