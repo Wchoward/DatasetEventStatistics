@@ -10,6 +10,7 @@ import gensim
 import fm
 from langconv import *
 import logging
+from process_NRC_VAD import get_emotion_intensity
 from gensim.models import Word2Vec
 from gensim.models import KeyedVectors
 from gensim.models.word2vec import LineSentence
@@ -126,6 +127,16 @@ def load_word2vec_model_text_to_dict(file_path, ):
     return dict_model
 
 
+def save_dict_to_word2vec_model_text(model_dict, file_path):
+    print('length:', len(model_dict))
+    words = list(model_dict.keys())
+    vectors = list(model_dict.values())
+    lst = [str(len(model_dict)) + ' 300']
+    for i in range(len(model_dict)):
+        lst.append(words[i] + ' ' + vectors[i])
+    fm.save_file(file_path, lst)
+
+
 def merge_word2vec_model_texts(origin_w2v_path, concept_w2v_path, merge_w2v_path):
     """
     合并两个text的word2vector模型为一个
@@ -176,6 +187,40 @@ def get_sent_embedding(lst, max_len):
     return embedding
 
 
+def get_sent_embedding_integrated_conceptnet(sent_lst, max_len, concept_dict, lam):
+    seg_lst = []
+    for sentence in sent_lst:
+        seg_lst.append(str(sentence).split())
+    # L = [len(x) for x in seg_lst]
+    # max_len = max(L)
+    print('max_len:', max_len)
+    sent_embedding_lst = []
+    for sentence in seg_lst:
+        word_embedding_lst = []
+        for word in sentence:
+            if word not in concept_dict.keys():
+                word_embedding_lst.append(model[word][np.newaxis, :])
+            else:
+                weight_lst = []
+                concept_embedding_lst = []
+                for c_k in concept_dict[word]:
+                    weight_k = get_emotion_intensity(NRC, word, lam)
+                    if weight_k is not None:
+                        if c_k in model_conceptnet:
+                            weight_lst.append(weight_k)
+                            concept_embedding_lst.append(model_conceptnet[c_k])
+                weight_lst = np.array(weight_lst)
+                concept_embedding_lst = np.array(concept_embedding_lst)
+                alpha_lst = np.exp(weight_lst) / sum(np.exp(weight_lst))
+                integrated_embedding = np.dot(alpha_lst, concept_embedding_lst) + model[word]
+                word_embedding_lst.append(integrated_embedding[np.newaxis, :])
+        sent_embedding = np.concatenate(word_embedding_lst)
+        sent_embedding_lst.append(
+            np.pad(sent_embedding, ((0, max_len - len(sent_embedding)), (0, 0)), 'constant')[np.newaxis, :])
+    embedding = np.concatenate(sent_embedding_lst)
+    return embedding
+
+
 def generate_embedding_npy(file_path, dir_path):
     """
     将csv文件的三列转化为embedding矩阵，分别保存为npy
@@ -184,11 +229,14 @@ def generate_embedding_npy(file_path, dir_path):
     :return:
     """
     df = pd.read_csv(file_path)
+    concept_dict = fm.load_dict_json('data/conceptNet/simplified_concept_dict.json')
     column0 = df.iloc[:, 0].values.tolist()
-    embedding0 = get_sent_embedding(column0, 169)
+    # embedding0 = get_sent_embedding(column0, 169)
+    embedding0 = get_sent_embedding_integrated_conceptnet(column0, 169, concept_dict, 0.5)
     np.save(dir_path + '/origin_text.npy', embedding0)
     column1 = df.iloc[:, 1].values.tolist()
-    embedding1 = get_sent_embedding(column1, 44)
+    # embedding1 = get_sent_embedding(column1, 44)
+    embedding1 = get_sent_embedding_integrated_conceptnet(column1, 44, concept_dict, 0.5)
     np.save(dir_path + '/cause_event.npy', embedding1)
     embedding2 = df.iloc[:, 2].values
     np.save(dir_path + '/if_cause.npy', embedding2)
@@ -223,7 +271,9 @@ if __name__ == '__main__':
     # model.save('model/origin_w2v_model/zh_wiki.model')
     # merge_word2vec_model_texts('model/origin_word2vec_embedding.txt', 'model/zhs_conceptnet_embedding.txt',
     #                            'model/merge_w2v_embedding.txt')
+    NRC = fm.load_dict_json('data/NRC_VAD/NRC.json')
     # 调用模型
-    # model = Word2Vec.load('model/origin_w2v_model/zh_wiki.model')
-    model = KeyedVectors.load_word2vec_format("model/merge_w2v_embedding.txt", binary=False)
-    generate_file_list_embedding('data/emotion_category', 'data/merge_w2v_emotion_category')
+    model = Word2Vec.load('model/origin_w2v_model/zh_wiki.model')
+    model_conceptnet = KeyedVectors.load_word2vec_format("model/conceptnet_embedding/filtered_conceptnet_embedding.txt",
+                                                         binary=False)
+    generate_file_list_embedding('data/emotion_category', 'data/lambda_w2v_emotion_category')
