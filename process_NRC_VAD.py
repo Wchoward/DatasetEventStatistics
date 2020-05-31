@@ -3,6 +3,7 @@ import json
 import fm
 
 
+
 def generate_NRC_VAD_dict(file_path, dict_path):
     df = pd.read_csv(file_path, sep='\t')
     NRC = {}
@@ -17,7 +18,7 @@ def generate_NRC_VAD_dict(file_path, dict_path):
 
 def get_emotion_intensity(NRC, word, lam):
     if word not in NRC:
-        return -1
+        return None
     v, a, d = NRC[word]
     w = lam * v + (1 - lam) * a
     return w
