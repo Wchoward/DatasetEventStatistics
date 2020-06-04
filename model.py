@@ -8,12 +8,16 @@ class MainModel:
 
         pass
 
+    def expand_dim(self, input):
+        return tf.expand_dims(input, -1)
+
     def model_build(self, module_1, module_2, input_1, input_2):
 
         output_1 = 0
         output_2 = 0
         if module_1 == 'cnn':
-            input_1 = tf.expand_dims(input_1, -1)
+            input_1 = tf.keras.layers.Lambda(self.expand_dim)(input_1)
+            # input_1 = tf.expand_dims(input_1, -1)
             output_1 = self.cnn_module(input_1)
         elif module_1 == "lstm":
             output_1 = self.rnn_module(input_1)
@@ -22,8 +26,8 @@ class MainModel:
 
         if module_2 == 'cnn':
             # input_2 = tf.expand_dims(input_2, -1)
-            # input_2 = tf.keras.layers.Lambda(expand_dim)(input_2)
-            input_2 = tf.expand_dims(input_2, -1)
+            input_2 = tf.keras.layers.Lambda(self.expand_dim)(input_2)
+            # input_2 = tf.expand_dims(input_2, -1)
             output_2 = self.cnn_module(input_2)
         elif module_2 == 'lstm':
             output_2 = self.rnn_module(input_2)
@@ -48,7 +52,7 @@ class MainModel:
             conv_2 = MaxPooling2D(pool_size=(2, 2), strides=(1, 1), padding='same')(conv_2)
             conv_2 = Activation("relu")(conv_2)
 
-            conv_3 = Conv2D(16, (10, 10), strides=(2, 2), padding="valid", data_format="channels_last")(conv_2)
+            conv_3 = Conv2D(16, (10, 10), strides=(2, 2), padding="same", data_format="channels_last")(conv_2)
             conv_3 = BatchNormalization()(conv_3)
             conv_3 = MaxPooling2D(pool_size=(2, 2), strides=(1, 1), padding='same')(conv_3)
             conv_3 = Activation("relu")(conv_3)
@@ -66,11 +70,33 @@ class MainModel:
 
             return output
 
+    def matmul(self, input):
+        return tf.matmul(input[0], input[1])
+
+    def transpose(self, input):
+        return tf.transpose(input, [0, 2, 1])
+
     def attention_module(self, input):
 
-        # tf.Variable()
+        with tf.name_scope("attention_module"):
+            # Linear projections
+            d_model = 64
+            Q = Dense(d_model, use_bias=False)(input)  # (N, T_q, d_model)
+            K = Dense(d_model, use_bias=False)(input)  # (N, T_k, d_model)
+            V = Dense(d_model, use_bias=False)(input)  # (N, T_k, d_model)
 
-        pass
+            K = tf.keras.layers.Lambda(self.transpose)(K)
+            output = tf.keras.layers.Lambda(self.matmul)([Q, K])  # (N, T_q, T_k)
+
+            # softmax
+            output = tf.nn.softmax(output)
+
+            output = tf.keras.layers.Lambda(self.matmul)([output, V])
+
+            output = Flatten()(output)
+            output = Dense(64, activation='relu')(output)
+
+            return output
 
     def concatenate(self, input):
         return tf.concat(input, axis=-1)
