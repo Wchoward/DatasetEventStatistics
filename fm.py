@@ -58,6 +58,14 @@ def get_filelist(dir, Filelist):
     return Filelist
 
 
+def get_dir_list(dir_path):
+    lst = []
+    for s in os.listdir(dir_path):
+        if os.path.isdir(os.path.join(dir_path, s)):
+            lst.append(s)
+    return lst
+
+
 if __name__ == '__main__':
     a = load_xml('/Users/plucky/Downloads/tizh/test/ti.xml')
     a = 4 * a
