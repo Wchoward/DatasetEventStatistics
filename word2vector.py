@@ -265,6 +265,24 @@ def generate_file_list_embedding(csv_dir_path, embedding_dir_path, lam):
         generate_embedding_npy(file_path, embedding_dir_path + '/' + category, lam)
 
 
+def merge_emotion_numpy_embedding(input_path, output_path):
+    original_text = []
+    cause_events = []
+    labels = []
+    category_lst = fm.get_dir_list(input_path)
+    for category in category_lst:
+        path = os.path.join(input_path, category)
+        original_text.append(np.load(os.path.join(path, 'origin_text.npy'), allow_pickle=True))
+        cause_events.append(np.load(os.path.join(path, 'cause_event.npy'), allow_pickle=True))
+        labels.append(np.load(os.path.join(path, 'if_cause.npy'), allow_pickle=True))
+    original_text_merge = np.concatenate(original_text)
+    cause_events_merge = np.concatenate(cause_events)
+    labels_merge = np.concatenate(labels)
+    np.save(output_path + '/origin_text.npy', original_text_merge)
+    np.save(output_path + '/cause_event.npy', cause_events_merge)
+    np.save(output_path + '/if_cause.npy', labels_merge)
+
+
 if __name__ == '__main__':
     # 将我们语料中的原始文本分词后合并入一个文件 用于后续训练word2vec
     # get_all_origin_seg_text('data/emotion_category')
@@ -277,12 +295,12 @@ if __name__ == '__main__':
     # model.save('model/origin_w2v_model/zh_wiki.model')
     # merge_word2vec_model_texts('model/origin_word2vec_embedding.txt', 'model/zhs_conceptnet_embedding.txt',
     #                            'model/merge_w2v_embedding.txt')
-    NRC = fm.load_dict_json('data/NRC_VAD/NRC.json')
+    # NRC = fm.load_dict_json('data/NRC_VAD/NRC.json')
     # 调用模型
-    model = Word2Vec.load('model/origin_w2v_model/zh_wiki.model')
-    # model_conceptnet = KeyedVectors.load_word2vec_format("model/conceptnet_embedding/filtered_conceptnet_embedding.txt",
-    #                                                      binary=False)
-    generate_file_list_embedding('data/emotion_category', 'data/origin_w2v_emotion_category', 0)
+    # model = Word2Vec.load('model/origin_w2v_model/zh_wiki.model')
+    model_conceptnet = KeyedVectors.load_word2vec_format("model/conceptnet_embedding/filtered_conceptnet_embedding.txt",
+                                                         binary=False)
+    # generate_file_list_embedding('data/emotion_category', 'data/origin_w2v_emotion_category', 0)
     # generate_file_list_embedding('data/emotion_category', 'data/w2v_emotion_category_lambda_0', 0)
     # os.system('tar zcvf data/w2v_emotion_category_lambda_0.tar.gz data/w2v_emotion_category_lambda_0')
     # os.system('rm -rf data/w2v_emotion_category_lambda_0')
@@ -298,3 +316,5 @@ if __name__ == '__main__':
     # generate_file_list_embedding('data/emotion_category', 'data/w2v_emotion_category_lambda_1', 1)
     # os.system('tar zcvf data/w2v_emotion_category_lambda_1.tar.gz data/w2v_emotion_category_lambda_1')
     # os.system('rm -rf data/w2v_emotion_category_lambda_1')
+    # merge_emotion_numpy_embedding('data/w2v_emotion_category_lambda_0.25', 'data/merge_emotion_embedding_0.25')
+    merge_emotion_numpy_embedding('data/w2v_emotion_category_lambda_1', 'data/merge_emotion_embedding_1')
