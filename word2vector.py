@@ -234,14 +234,14 @@ def generate_embedding_npy(file_path, dir_path, lam):
     :return:
     """
     df = pd.read_csv(file_path)
-    concept_dict = fm.load_dict_json('data/conceptNet/simplified_concept_dict.json')
+    concept_dict = fm.load_dict_json('data/conceptNet/simplified_expand_concept_dict.json')
     column0 = df.iloc[:, 0].values.tolist()
-    embedding0 = get_sent_embedding(column0, 169)
-    # embedding0 = get_sent_embedding_integrated_conceptnet(column0, 169, concept_dict, lam)
+    # embedding0 = get_sent_embedding(column0, 169)
+    embedding0 = get_sent_embedding_integrated_conceptnet(column0, 169, concept_dict, lam)
     np.save(dir_path + '/origin_text.npy', embedding0)
     column1 = df.iloc[:, 1].values.tolist()
-    embedding1 = get_sent_embedding(column1, 44)
-    # embedding1 = get_sent_embedding_integrated_conceptnet(column1, 44, concept_dict, lam)
+    # embedding1 = get_sent_embedding(column1, 44)
+    embedding1 = get_sent_embedding_integrated_conceptnet(column1, 44, concept_dict, lam)
     np.save(dir_path + '/cause_event.npy', embedding1)
     embedding2 = df.iloc[:, 2].values
     np.save(dir_path + '/if_cause.npy', embedding2)
@@ -296,25 +296,32 @@ if __name__ == '__main__':
     # merge_word2vec_model_texts('model/origin_word2vec_embedding.txt', 'model/zhs_conceptnet_embedding.txt',
     #                            'model/merge_w2v_embedding.txt')
     # NRC = fm.load_dict_json('data/NRC_VAD/NRC.json')
-    # 调用模型
+    # # 调用模型
     # model = Word2Vec.load('model/origin_w2v_model/zh_wiki.model')
-    model_conceptnet = KeyedVectors.load_word2vec_format("model/conceptnet_embedding/filtered_conceptnet_embedding.txt",
-                                                         binary=False)
-    # generate_file_list_embedding('data/emotion_category', 'data/origin_w2v_emotion_category', 0)
-    # generate_file_list_embedding('data/emotion_category', 'data/w2v_emotion_category_lambda_0', 0)
-    # os.system('tar zcvf data/w2v_emotion_category_lambda_0.tar.gz data/w2v_emotion_category_lambda_0')
-    # os.system('rm -rf data/w2v_emotion_category_lambda_0')
-    # generate_file_list_embedding('data/emotion_category', 'data/w2v_emotion_category_lambda_0.25', 0.25)
-    # os.system('tar zcvf data/w2v_emotion_category_lambda_0.25.tar.gz data/w2v_emotion_category_lambda_0.25')
-    # os.system('rm -rf data/w2v_emotion_category_lambda_0.25')
-    # generate_file_list_embedding('data/emotion_category', 'data/w2v_emotion_category_lambda_0.5', 0.5)
-    # os.system('tar zcvf data/w2v_emotion_category_lambda_0.5.tar.gz data/w2v_emotion_category_lambda_0.5')
-    # os.system('rm -rf data/w2v_emotion_category_lambda_0.5')
-    # generate_file_list_embedding('data/emotion_category', 'data/w2v_emotion_category_lambda_0.75', 0.75)
-    # os.system('tar zcvf data/w2v_emotion_category_lambda_0.75.tar.gz data/w2v_emotion_category_lambda_0.75')
-    # os.system('rm -rf data/w2v_emotion_category_lambda_0.75')
-    # generate_file_list_embedding('data/emotion_category', 'data/w2v_emotion_category_lambda_1', 1)
-    # os.system('tar zcvf data/w2v_emotion_category_lambda_1.tar.gz data/w2v_emotion_category_lambda_1')
-    # os.system('rm -rf data/w2v_emotion_category_lambda_1')
-    # merge_emotion_numpy_embedding('data/w2v_emotion_category_lambda_0.25', 'data/merge_emotion_embedding_0.25')
-    merge_emotion_numpy_embedding('data/w2v_emotion_category_lambda_1', 'data/merge_emotion_embedding_1')
+    # model_conceptnet = KeyedVectors.load_word2vec_format("model/conceptnet_embedding/filtered_expand_conceptnet_embedding.txt",
+    #                                                      binary=False)
+    # # generate_file_list_embedding('data/emotion_category', 'data/origin_w2v_emotion_category', 0)
+    #
+    # generate_file_list_embedding('data/emotion_category', 'data/expand_w2v_emotion_category_lambda_0', 0)
+    # os.system('tar zcvf data/expand_w2v_emotion_category_lambda_0.tar.gz data/expand_w2v_emotion_category_lambda_0')
+    # # os.system('rm -rf data/w2v_emotion_category_lambda_0')
+    # generate_file_list_embedding('data/emotion_category', 'data/expand_w2v_emotion_category_lambda_0.25', 0.25)
+    # os.system('tar zcvf data/expand_w2v_emotion_category_lambda_0.25.tar.gz data/expand_w2v_emotion_category_lambda_0.25')
+    # # os.system('rm -rf data/w2v_emotion_category_lambda_0.25')
+    # generate_file_list_embedding('data/emotion_category', 'data/expand_w2v_emotion_category_lambda_0.5', 0.5)
+    # os.system('tar zcvf data/expand_w2v_emotion_category_lambda_0.5.tar.gz data/expand_w2v_emotion_category_lambda_0.5')
+    # # os.system('rm -rf data/w2v_emotion_category_lambda_0.5')
+    # generate_file_list_embedding('data/emotion_category', 'data/expand_w2v_emotion_category_lambda_0.75', 0.75)
+    # os.system('tar zcvf data/expand_w2v_emotion_category_lambda_0.75.tar.gz data/expand_w2v_emotion_category_lambda_0.75')
+    # # os.system('rm -rf data/w2v_emotion_category_lambda_0.75')
+    # generate_file_list_embedding('data/emotion_category', 'data/expand_w2v_emotion_category_lambda_1', 1)
+    # os.system('tar zcvf data/expand_w2v_emotion_category_lambda_1.tar.gz data/expand_w2v_emotion_category_lambda_1')
+    # # os.system('rm -rf data/w2v_emotion_category_lambda_1')
+    merge_emotion_numpy_embedding('data/expand_w2v_emotion_category_lambda_0', 'data/merge_expand_emotion_embedding_0')
+    merge_emotion_numpy_embedding('data/expand_w2v_emotion_category_lambda_0.25',
+                                  'data/merge_expand_emotion_embedding_0.25')
+    merge_emotion_numpy_embedding('data/expand_w2v_emotion_category_lambda_0.5',
+                                  'data/merge_expand_emotion_embedding_0.5')
+    merge_emotion_numpy_embedding('data/expand_w2v_emotion_category_lambda_0.75',
+                                  'data/merge_expand_emotion_embedding_0.75')
+    merge_emotion_numpy_embedding('data/expand_w2v_emotion_category_lambda_1', 'data/merge_expand_emotion_embedding_1')
