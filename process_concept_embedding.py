@@ -32,6 +32,51 @@ def get_concept_words(concept_dict_path):
     return lst, simplified_concept_dict
 
 
+def get_expand_concept_words(concept_dict_path):
+    """
+    从conceptDict中抽取出 含有 concept的所有相关concept单词list以及简化版的dict
+    :param concept_dict_path:
+    :return:
+    """
+    concept_dict = fm.load_dict_json(concept_dict_path)
+    lst = []
+    simplified_concept_dict = {}
+    for key, vlst in concept_dict.items():
+        concept_lst = []
+        lst.append(key)
+        concept_lst.append({'Weight': 1.0, 'Concept': key})
+        tmp = {}
+        word = ''
+        for l in vlst[:4]:
+            if l['Concept1'] in tmp.keys():
+                tmp[l['Concept1']] += 1
+            else:
+                tmp[l['Concept1']] = 1
+            if l['Concept2'] in tmp.keys():
+                tmp[l['Concept2']] += 1
+            else:
+                tmp[l['Concept2']] = 1
+        for k, v in tmp.items():
+            if v == len(tmp):
+                word = k
+                break
+        if word != '':
+            concept_lst.append({'Weight': 1.0, 'Concept': word})
+        for i in vlst:
+            dic = {'Weight': i['Weight']}
+            if i['Concept1'] != word:
+                dic['Concept'] = i['Concept1']
+                lst.append(i['Concept1'])
+                concept_lst.append(dic)
+            if i['Concept2'] != word:
+                dic['Concept'] = i['Concept2']
+                lst.append(i['Concept2'])
+                concept_lst.append(dic)
+        simplified_concept_dict[key] = concept_lst
+    lst = list(set(lst))
+    return lst, simplified_concept_dict
+
+
 def filter_conceptnet_embedding(dict_path, file_path_in, file_path_out):
     """
     缩减conceptNet embedding规模到与我们语料抽取出的concept相同
@@ -69,10 +114,10 @@ def filter_conceptnet_embedding(dict_path, file_path_in, file_path_out):
 
 
 if __name__ == "__main__":
-    # lst, concept_dict = get_concept_words('data/conceptNet/conceptDict.json')
+    lst, concept_dict = get_expand_concept_words('data/conceptNet/expand_conceptDict.json')
     # embedding_dict = load_word2vec_model_text_to_dict('model/conceptnet_embedding/filtered_conceptnet_embedding.txt')
-    # fm.save_file('data/conceptNet/conceptWords.txt', lst)
-    # fm.save_dict_json('data/conceptNet/simplified_concept_dict.json', concept_dict)
-    filter_conceptnet_embedding('data/conceptNet/conceptDict.json',
-                                'model/conceptnet_embedding/zhs_conceptnet_embedding.txt',
-                                'model/conceptnet_embedding/filtered_conceptnet_embedding.txt')
+    # fm.save_file('data/conceptNet/expand_conceptWords.txt', lst)
+    fm.save_dict_json('data/conceptNet/simplified_expand_concept_dict.json', concept_dict)
+    # filter_conceptnet_embedding('data/conceptNet/expand_conceptDict.json',
+    #                             'model/conceptnet_embedding/zhs_conceptnet_embedding.txt',
+    #                             'model/conceptnet_embedding/filtered_expand_conceptnet_embedding.txt')
