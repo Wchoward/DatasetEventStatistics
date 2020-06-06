@@ -5,16 +5,18 @@ import numpy as np
 import os
 import time
 import fm
-import word2vector
+# import word2vector
 from sklearn.metrics import precision_recall_fscore_support
-import tensorflow.contrib.eager as tfe
+
+# import tensorflow.contrib.eager as tfe
 
 os.environ['CUDA_VISIBLE_DEVICES'] = "7"
 
 EPOCH = 8
 BATCH_SIZE = 16
 
-tfe.enable_eager_execution()
+
+# tfe.enable_eager_execution()
 
 
 def train_per_emotion(path, module1, module2):
@@ -109,27 +111,27 @@ if __name__ == '__main__':
     root_path = 'data/origin_w2v_emotion_category'
     module = ['cnn', 'lstm', 'attention']
     category_lst = get_dir_list(root_path)
-    # train_per_emotion('data/merge_emotion_embedding_1', 'attention', 'attention')
+    # train_per_emotion('data/merge_expand_emotion_embedding_1', 'attention', 'attention')
     # origin w2v
-    result = train_lst(root_path, category_lst, module)
-    fm.save_file('result/origin_result.txt', result)
+    # result = train_lst(root_path, category_lst, module)
+    # fm.save_file('result/origin_result.txt', result)
     # lambda=0
-    root_path = 'data/w2v_emotion_category_lambda_0'
+    root_path = 'data/expand_w2v_emotion_category_lambda_0'
     result = train_lst(root_path, category_lst, module)
-    fm.save_file('result/lambda_result_0.txt', result)
+    fm.save_file('result/expand_lambda_result_0.txt', result)
     # lambda=0.25
-    root_path = 'data/w2v_emotion_category_lambda_0.25'
+    root_path = 'data/expand_w2v_emotion_category_lambda_0.25'
     result = train_lst(root_path, category_lst, module)
-    fm.save_file('result/lambda_result_0.25.txt', result)
+    fm.save_file('result/expand_lambda_result_0.25.txt', result)
     # lambda=0.5
-    root_path = 'data/w2v_emotion_category_lambda_0.5'
+    root_path = 'data/expand_w2v_emotion_category_lambda_0.5'
     result = train_lst(root_path, category_lst, module)
-    fm.save_file('result/lambda_result_0.5.txt', result)
+    fm.save_file('result/expand_lambda_result_0.5.txt', result)
     # lambda=0.75
-    root_path = 'data/w2v_emotion_category_lambda_0.75'
+    root_path = 'data/expand_w2v_emotion_category_lambda_0.75'
     result = train_lst(root_path, category_lst, module)
-    fm.save_file('result/lambda_result_0.75.txt', result)
+    fm.save_file('result/expand_lambda_result_0.75.txt', result)
     # lambda=1
-    root_path = 'data/w2v_emotion_category_lambda_1'
+    root_path = 'data/expand_w2v_emotion_category_lambda_1'
     result = train_lst(root_path, category_lst, module)
-    fm.save_file('result/lambda_result_1.txt', result)
+    fm.save_file('result/expand_lambda_result_1.txt', result)
