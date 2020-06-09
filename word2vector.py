@@ -11,6 +11,8 @@ import fm
 from langconv import *
 import logging
 from process_NRC_VAD import get_emotion_intensity
+from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import OneHotEncoder
 from gensim.models import Word2Vec
 from gensim.models import KeyedVectors
 from gensim.models.word2vec import LineSentence
@@ -269,18 +271,27 @@ def merge_emotion_numpy_embedding(input_path, output_path):
     original_text = []
     cause_events = []
     labels = []
+    emotions = []
     category_lst = fm.get_dir_list(input_path)
     for category in category_lst:
         path = os.path.join(input_path, category)
         original_text.append(np.load(os.path.join(path, 'origin_text.npy'), allow_pickle=True))
         cause_events.append(np.load(os.path.join(path, 'cause_event.npy'), allow_pickle=True))
         labels.append(np.load(os.path.join(path, 'if_cause.npy'), allow_pickle=True))
+        for i in range(len(np.load(os.path.join(path, 'if_cause.npy')))):
+            emotions.append(category)
     original_text_merge = np.concatenate(original_text)
     cause_events_merge = np.concatenate(cause_events)
     labels_merge = np.concatenate(labels)
+    le = LabelEncoder()
+    ohe = OneHotEncoder()
+    emotion_le = le.fit_transform(emotions)
+    emotion_le = np.array([emotion_le]).T
+    emotion_labels = ohe.fit_transform(emotion_le).toarray()
     np.save(output_path + '/origin_text.npy', original_text_merge)
     np.save(output_path + '/cause_event.npy', cause_events_merge)
     np.save(output_path + '/if_cause.npy', labels_merge)
+    np.save(output_path + '/emotion_label.npy', emotion_labels)
 
 
 if __name__ == '__main__':
@@ -317,11 +328,11 @@ if __name__ == '__main__':
     # generate_file_list_embedding('data/emotion_category', 'data/expand_w2v_emotion_category_lambda_1', 1)
     # os.system('tar zcvf data/expand_w2v_emotion_category_lambda_1.tar.gz data/expand_w2v_emotion_category_lambda_1')
     # # os.system('rm -rf data/w2v_emotion_category_lambda_1')
-    merge_emotion_numpy_embedding('data/expand_w2v_emotion_category_lambda_0', 'data/merge_expand_emotion_embedding_0')
-    merge_emotion_numpy_embedding('data/expand_w2v_emotion_category_lambda_0.25',
-                                  'data/merge_expand_emotion_embedding_0.25')
-    merge_emotion_numpy_embedding('data/expand_w2v_emotion_category_lambda_0.5',
-                                  'data/merge_expand_emotion_embedding_0.5')
-    merge_emotion_numpy_embedding('data/expand_w2v_emotion_category_lambda_0.75',
-                                  'data/merge_expand_emotion_embedding_0.75')
-    merge_emotion_numpy_embedding('data/expand_w2v_emotion_category_lambda_1', 'data/merge_expand_emotion_embedding_1')
+    merge_emotion_numpy_embedding('data/w2v_emotion_category_lambda_0', 'data/merge_emotion_embedding_0')
+    # merge_emotion_numpy_embedding('data/expand_w2v_emotion_category_lambda_0.25',
+    #                               'data/merge_expand_emotion_embedding_0.25')
+    # merge_emotion_numpy_embedding('data/expand_w2v_emotion_category_lambda_0.5',
+    #                               'data/merge_expand_emotion_embedding_0.5')
+    # merge_emotion_numpy_embedding('data/expand_w2v_emotion_category_lambda_0.75',
+    #                               'data/merge_expand_emotion_embedding_0.75')
+    # merge_emotion_numpy_embedding('data/expand_w2v_emotion_category_lambda_1', 'data/merge_expand_emotion_embedding_1')
