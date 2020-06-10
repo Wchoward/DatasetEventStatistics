@@ -11,7 +11,7 @@ class MainModel:
     def expand_dim(self, input):
         return tf.expand_dims(input, -1)
 
-    def model_build(self, module_1, module_2, input_1, input_2):
+    def model_build(self, module_1, module_2, input_1, input_2, input_3):
 
         output_1 = 0
         output_2 = 0
@@ -34,7 +34,7 @@ class MainModel:
         elif module_2 == 'attention':
             output_2 = self.attention_module(input_2)
 
-        output = self.output_module(output_1, output_2)
+        output = self.output_module(output_1, output_2, input_3)
 
         return output
 
@@ -101,11 +101,12 @@ class MainModel:
     def concatenate(self, input):
         return tf.concat(input, axis=-1)
 
-    def output_module(self, original_text, event):
+    def output_module(self, original_text, event, emotion_labels):
 
         with tf.name_scope("output_module"):
             # concatenation_vector = tf.concat([original_text, event], axis=-1)
             concatenation_vector = tf.keras.layers.Lambda(self.concatenate)([original_text, event])
+            concatenation_vector = tf.keras.layers.Lambda(self.concatenate)([concatenation_vector, emotion_labels])
             # FC1
             fc_1 = Dense(64, activation='relu')(concatenation_vector)
             fc_1 = Dropout(0.5)(fc_1)
