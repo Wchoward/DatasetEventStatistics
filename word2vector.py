@@ -328,7 +328,7 @@ if __name__ == '__main__':
     # generate_file_list_embedding('data/emotion_category', 'data/expand_w2v_emotion_category_lambda_1', 1)
     # os.system('tar zcvf data/expand_w2v_emotion_category_lambda_1.tar.gz data/expand_w2v_emotion_category_lambda_1')
     # # os.system('rm -rf data/w2v_emotion_category_lambda_1')
-    merge_emotion_numpy_embedding('data/w2v_emotion_category_lambda_0', 'data/merge_emotion_embedding_0')
+    # merge_emotion_numpy_embedding('data/w2v_emotion_category_lambda_0', 'data/merge_emotion_embedding_0')
     # merge_emotion_numpy_embedding('data/expand_w2v_emotion_category_lambda_0.25',
     #                               'data/merge_expand_emotion_embedding_0.25')
     # merge_emotion_numpy_embedding('data/expand_w2v_emotion_category_lambda_0.5',
@@ -336,3 +336,17 @@ if __name__ == '__main__':
     # merge_emotion_numpy_embedding('data/expand_w2v_emotion_category_lambda_0.75',
     #                               'data/merge_expand_emotion_embedding_0.75')
     # merge_emotion_numpy_embedding('data/expand_w2v_emotion_category_lambda_1', 'data/merge_expand_emotion_embedding_1')
+
+    dic = {'guilt': np.array([0., 0., 0., 1., 0., 0., 0.]), 'anger': np.array([1., 0., 0., 0., 0., 0., 0.]),
+           'disgust': np.array([0., 1., 0., 0., 0., 0., 0.]), 'fear': np.array([0., 0., 1., 0., 0., 0., 0.]),
+           'joy': np.array([0., 0., 0., 0., 1., 0., 0.]), 'sadness': np.array([0., 0., 0., 0., 0., 1., 0.]),
+           'shame': np.array([0., 0., 0., 0., 0., 0., 1.])}
+    re_emotion_category = re.compile(r'.*?/.*?/ImplicitECD.(.*?).tokenization.csv')
+    file_path_lst = []
+    file_path_lst = fm.get_filelist('data/emotion_category', file_path_lst)
+    for file_path in file_path_lst:
+        category = re_emotion_category.match(file_path).group(1)
+        length = len(np.load(os.path.join('data/origin_w2v_emotion_category', category, 'if_cause.npy')))
+        emotion_label = np.tile(dic[category], (length, 1))
+        print(category, emotion_label.shape)
+        np.save('data/origin_w2v_emotion_category/' + category + '/emotion_label.npy', emotion_label)
