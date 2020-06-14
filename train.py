@@ -114,29 +114,32 @@ def train_lst_category(root_path, category_lst, module):
 
 
 def train_lst_merge(root_path, module):
-    res = []
+    res = ['extractor,P,R,F']
     for module1 in module:
         for module2 in module:
-            res.append(module1 + '+' + module2 + ',,,')
-            res.append('lambda,P,R,F')
-            for i in range(0, 101, 25):
-                path = root_path + str(i / 100)
-                lambda_p_r_f = [str(i / 100)] + train_per_emotion(path, module1, module2)
-                s_lambda_p_r_f = ','.join(str(i) for i in lambda_p_r_f)
-                res.append(s_lambda_p_r_f)
-            res.append('')
+            # res.append(module1 + '+' + module2 + ',,,')
+            # res.append('extractor,P,R,F')
+            # for i in range(0, 101, 25):
+            lambda_p_r_f = [module1 + '+' + module2] + train_per_emotion(root_path, module1, module2)
+            s_lambda_p_r_f = ','.join(str(i) for i in lambda_p_r_f)
+            res.append(s_lambda_p_r_f)
+            # res.append('')
     return res
 
 
 if __name__ == '__main__':
     root_path = 'data/origin_w2v_emotion_category'
-    module = ['attention']
+    module = ['cnn', 'lstm', 'attention']
     category_lst = get_dir_list(root_path)
     train_per_emotion('data/merge_origin_emotion_embedding', 'attention', 'attention')
 
-    # root_path = 'data/merge_emotion_embedding_'
+    # root_path = 'data/merge_expand_emotion_embedding_0.25'
     # result = train_lst_merge(root_path, module)
-    # fm.save_file('result/merge_emotion_label.txt', result)
+    # fm.save_file('result/merge_expand_emotion_label_0.25.txt', result)
+    #
+    # root_path = 'data/merge_expand_emotion_embedding_'
+    # result = train_lst_merge(root_path, module)
+    # fm.save_file('result/merge_expand_emotion_label.txt', result)
 
     # # origin w2v
     # result = train_lst_category(root_path, category_lst, module)
